@@ -1,0 +1,28 @@
+server:
+  port: 8001
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: org.gjt.mm.mysql.Driver
+    url: jdbc:mysql://localhost:3306/background_system?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: root
+
+mybatis:
+  database:
+    type: mysql
+  model:
+    pack: com.zzs.entity
+  table:
+    auto: update
+
+
+mybatis-plus:
+  mapper-locations: classpath*:resources/mapper/*.xml,classpath*:com/gitee/sunchenbin/mybatis/actable/mapping/*/*.xml
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+
+logging:
+  level:
+    com.zzs.dao: debug
