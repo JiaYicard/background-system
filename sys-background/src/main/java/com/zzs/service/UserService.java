@@ -1,17 +1,17 @@
 package com.zzs.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.zzs.base.BaseService;
 import com.zzs.entity.User;
 
 /**
  * <p>
- * 服务类
+ *  服务类
  * </p>
  *
  * @author mountain
- * @since 2021-05-15
+ * @since 2021-05-17
  */
-public interface UserService extends IService<User> {
+public interface UserService extends BaseService<User> {
 
     /**
      * 注册账号
@@ -20,5 +20,5 @@ public interface UserService extends IService<User> {
      * @param password 密码
      * @return
      */
-    String registeredAccount(String userName, String password);
+    String registeredAccount(String userName, String password) throws Exception;
 }

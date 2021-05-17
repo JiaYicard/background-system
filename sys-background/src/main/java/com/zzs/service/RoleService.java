@@ -1,6 +1,6 @@
 package com.zzs.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.zzs.base.BaseService;
 import com.zzs.entity.Role;
 
 /**
@@ -11,6 +11,6 @@ import com.zzs.entity.Role;
  * @author mountain
  * @since 2021-05-15
  */
-public interface RoleService extends IService<Role> {
+public interface RoleService extends BaseService<Role> {
 
 }

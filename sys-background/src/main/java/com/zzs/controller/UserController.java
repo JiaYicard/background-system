@@ -26,7 +26,7 @@ public class UserController extends BaseController {
     private UserService userService;
 
     @PostMapping(value = "/registeredAccount")
-    private CommonResult registeredAccount(String userName, String password) {
+    private CommonResult registeredAccount(String userName, String password) throws Exception {
         String result = userService.registeredAccount(userName, password);
         if (result.equals(Constant.SUCCESS)) {
             CommonResult.success("注册成功");

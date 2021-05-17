@@ -130,12 +130,13 @@ public class AutoCreateCode {
                     throw new MybatisPlusException("请输入正确的表前缀" + ipt + "！");
                 }
                 String s = ipt.substring(0, ipt.indexOf("_") + 1);
-                System.out.println("s = " + s);
                 strategy.setTablePrefix(s);
                 strategy.setInclude(ipt);
             }
         }
         strategy.setSuperControllerClass("com.zzs.base.BaseController");
+        strategy.setSuperServiceClass("com.zzs.base.BaseService");
+        strategy.setSuperMapperClass("com.zzs.base.BaseDao");
         strategy.setNaming(NamingStrategy.underline_to_camel);
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);
         mpg.setStrategy(strategy);

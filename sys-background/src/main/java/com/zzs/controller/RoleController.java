@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
- * 前端控制器
+ *  前端控制器
  * </p>
  *
  * @author mountain
- * @since 2021-05-15
+ * @since 2021-05-17
  */
 @RestController
-@RequestMapping("/permission")
-public class PermissionController extends BaseController {
+@RequestMapping("/role")
+public class RoleController extends BaseController {
 
 }
