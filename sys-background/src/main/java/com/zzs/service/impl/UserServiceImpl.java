@@ -11,13 +11,17 @@ import com.zzs.entity.User;
 import com.zzs.service.UserService;
 import com.zzs.util.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -30,7 +34,6 @@ import java.util.concurrent.Future;
 @Transactional(rollbackFor = Exception.class)
 @Service
 public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserService {
-    //是否可以提交
     public static volatile boolean IS_OK = true;
 
     @Autowired
@@ -41,6 +44,12 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
 
     @Autowired
     private PermissionDao permissionDao;
+
+    @Autowired
+    private DataSourceTransactionManager dataSourceTransactionManager;
+
+    @Autowired
+    private TransactionDefinition transactionDefinition;
 
     /**
      * 注册账号
@@ -63,56 +72,82 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         if (password == null || password.length() <= 6) {
             return "密码长度不能小于6位";
         }
-        //TODO 多线程事务
-        User user = new User();
-        user.setUserName(userName);
-        user.setPassword(password);
-        userDao.insert(user);
-
-        //子线程等待主线程通知
+        List<Boolean> responseList = new ArrayList<>();
         CountDownLatch mainMonitor = new CountDownLatch(1);
+        CountDownLatch childMonitor = new CountDownLatch(2);
 
         //根据任务数动态创建线程
         ExecutorService exectutor = Executors.newCachedThreadPool();
-        exectutor.execute(() -> {
-            Role role = new Role();
-            role.setUserId(user.getId());
-            roleDao.insert(role);
-            Permission permission = new Permission();
-            permission.setRoleId(role.getId());
-            permissionDao.insert(permission);
-            System.out.println(1 / 0);
-        });
-
-
-        Future<?> future = exectutor.submit(new Runnable() {
-            @Transactional(rollbackFor = Exception.class)
-            @Override
-            public void run() {
-//                //设置回滚点
-//                Object savepoint = null;
-//
-//                try {
-//                    savepoint = TransactionAspectSupport.currentTransactionStatus().createSavepoint();
-//                    Role role = new Role();
-//                    role.setUserId(user.getId());
-//                    roleDao.insert(role);
-//                    Permission permission = new Permission();
-//                    permission.setRoleId(role.getId());
-//                    permissionDao.insert(permission);
-//                    System.out.println(1 / 0);
-//                } catch (Exception e) {
-//                    TransactionAspectSupport.currentTransactionStatus().rollbackToSavepoint(savepoint);
-////                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-//                }
-
+        exectutor.submit(() -> {
+            TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+            try {
+                User user = new User();
+                responseList.add(Boolean.TRUE);
+                user.setId(1L);
+                user.setUserName(userName);
+                user.setPassword(password);
+                userDao.insert(user);
+                childMonitor.countDown();
+                mainMonitor.await();
+                if (IS_OK) {
+                    System.out.println("线程：" + Thread.currentThread().getName() + "任务运行正常，开始提交");
+                    dataSourceTransactionManager.commit(transactionStatus);
+                } else {
+                    dataSourceTransactionManager.rollback(transactionStatus);
+                }
+            } catch (Exception e) {
+                childMonitor.countDown();
+                responseList.add(Boolean.FALSE);
+                e.printStackTrace();
+                System.out.println("线程：" + Thread.currentThread().getName() + "发生了异常，撤回提交，开始回滚" + "\n异常原因：" + e);
+                dataSourceTransactionManager.rollback(transactionStatus);
             }
         });
-        //获取子线程结果
-        future.get();
-        //关闭线程池
-        exectutor.shutdown();
 
+        exectutor.submit(() -> {
+            TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+            try {
+                responseList.add(Boolean.TRUE);
+                Role role = new Role();
+                role.setId(1L);
+                role.setUserId(1L);
+                roleDao.insert(role);
+                Permission permission = new Permission();
+                permission.setId(1L);
+                permission.setRoleId(role.getId());
+                permissionDao.insert(permission);
+                System.out.println(1 / 0);
+                childMonitor.countDown();
+                mainMonitor.await();
+                if (IS_OK) {
+                    System.out.println("线程：" + Thread.currentThread().getName() + "任务运行正常，开始提交");
+                    dataSourceTransactionManager.commit(transactionStatus);
+                } else {
+                    dataSourceTransactionManager.rollback(transactionStatus);
+                }
+            } catch (Exception e) {
+                childMonitor.countDown();
+                responseList.add(Boolean.FALSE);
+                e.printStackTrace();
+                System.out.println("线程：" + Thread.currentThread().getName() + "发生了异常，撤回提交，开始回滚" + "\n异常原因：" + e);
+                dataSourceTransactionManager.rollback(transactionStatus);
+            }
+        });
+
+        try {
+            childMonitor.await();
+            //等待上面子线程的count倒计时结束运行
+            for (Boolean resp : responseList) {
+                if (!resp) {
+                    IS_OK = false;
+                    break;
+                }
+            }
+            //控制if (IS_OK)段开始运行
+            mainMonitor.countDown();
+        } finally {
+            exectutor.shutdown();
+        }
         return Constant.SUCCESS;
     }
 }
