@@ -20,8 +20,9 @@ mybatis:
 
 mybatis-plus:
   mapper-locations: classpath*:resources/mapper/*.xml,classpath*:com/gitee/sunchenbin/mybatis/actable/mapping/*/*.xml
+#  #开启sql日志
 #  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 logging:
   level:

@@ -2,6 +2,7 @@ package com.zzs.base;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.gitee.sunchenbin.mybatis.actable.annotation.Column;
 import com.gitee.sunchenbin.mybatis.actable.constants.MySqlTypeConstant;
 import lombok.Data;
@@ -38,7 +39,8 @@ public abstract class BaseEntity implements Serializable {
     /**
      * 逻辑删除
      */
+    @TableLogic
     @Column(name = "is_delete", type = MySqlTypeConstant.INT, length = 1, isNull = false, defaultValue = "0")
-    private Boolean isDelete;
+    private Integer isDelete;
 
 }

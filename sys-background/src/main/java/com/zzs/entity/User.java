@@ -26,4 +26,27 @@ public class User extends BaseEntity {
      */
     @Column(name = "password", type = MySqlTypeConstant.VARCHAR)
     private String password;
+
+    /**
+     * 邮箱
+     */
+    @Column(name = "email", type = MySqlTypeConstant.VARCHAR)
+    private String email;
+
+    /**
+     * 用户身份
+     */
+    @Column(name = "role_name_enum", type = MySqlTypeConstant.INT, length = 1, defaultValue = "0")
+    private String roleNameEnum;
+
+    public enum roleNameEnum {
+        /**
+         * 普通用户
+         */
+        COMMON,
+        /**
+         * 管理员
+         */
+        ADMIN;
+    }
 }

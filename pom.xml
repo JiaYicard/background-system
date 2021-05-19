@@ -24,6 +24,7 @@
         <mybatis-plus.version>3.4.2</mybatis-plus.version>
         <shrio.version>1.4.0</shrio.version>
         <actable.version>1.4.9.RELEASE</actable.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
     </properties>
 
     <!-- 子模块继承之后，提供作用：子模块不自动继承，由父模块统一管理版本,子模块只需写groupId和artifactId  -->
@@ -79,6 +80,13 @@
                 <groupId>org.apache.shiro</groupId>
                 <artifactId>shiro-spring</artifactId>
                 <version>${shrio.version}</version>
+            </dependency>
+
+            <!-- commons-lang3 (StringUtils)-->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

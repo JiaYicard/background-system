@@ -25,12 +25,39 @@ public class UserController extends BaseController {
     @Autowired
     private UserService userService;
 
+    /**
+     * 注册
+     *
+     * @param userName 用户名
+     * @param password 密码
+     * @param email    邮箱
+     * @return
+     * @throws Exception
+     */
     @PostMapping(value = "/registeredAccount")
-    private CommonResult registeredAccount(String userName, String password) throws Exception {
-        String result = userService.registeredAccount(userName, password);
+    public CommonResult registeredAccount(String userName, String password, String email) {
+        String result = userService.registeredAccount(userName, password, email);
         if (result.equals(Constant.SUCCESS)) {
-            CommonResult.success("注册成功");
+            return CommonResult.success("注册成功");
         }
         return CommonResult.error(result);
     }
+
+    /**
+     * 注销账号
+     *
+     * @param userId
+     * @return
+     */
+    @PostMapping(value = "/logoutAccount")
+    public CommonResult logoutAccount(Long userId) {
+        String result = userService.logoutAccount(userId);
+        if (result.equals(Constant.SUCCESS)) {
+            return CommonResult.success("注销账号成功");
+        }
+        return CommonResult.error(result);
+    }
+
+
 }
+

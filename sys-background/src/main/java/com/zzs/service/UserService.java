@@ -5,7 +5,7 @@ import com.zzs.entity.User;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author mountain
@@ -18,7 +18,16 @@ public interface UserService extends BaseService<User> {
      *
      * @param userName 用户名
      * @param password 密码
+     * @param email    邮箱
      * @return
      */
-    String registeredAccount(String userName, String password) throws Exception;
+    String registeredAccount(String userName, String password, String email);
+
+    /**
+     * 注销账号
+     *
+     * @param userId 用户id
+     * @return
+     */
+    String logoutAccount(Long userId);
 }
