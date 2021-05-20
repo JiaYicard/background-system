@@ -15,8 +15,13 @@ public class GeneralUtils {
      *
      * @return
      */
-    public static Integer generalVerificationCode() {
-        return new Random().nextInt(5);
+    public static String generalVerificationCode() {
+        StringBuilder builder = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 6; i++) {
+            builder.append(random.nextInt(10));
+        }
+        return builder.toString();
     }
 
 }

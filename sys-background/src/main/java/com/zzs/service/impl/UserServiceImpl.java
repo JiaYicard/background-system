@@ -121,7 +121,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
             emailCodeVo.setResult("该邮箱已被注册，请更换一个");
             return emailCodeVo;
         }
-        Integer emailCode;
+        String emailCode;
         String token;
         try {
             emailCode = SendEmailUtils.sendQQEmail(email);

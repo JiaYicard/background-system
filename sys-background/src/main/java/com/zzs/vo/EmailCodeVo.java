@@ -8,14 +8,14 @@ import lombok.Data;
  */
 @Data
 public class EmailCodeVo {
-    private Integer emailCode;
+    private String emailCode;
 
     private String result;
 
     public EmailCodeVo() {
     }
 
-    public EmailCodeVo(Integer emailCode, String result) {
+    public EmailCodeVo(String emailCode, String result) {
         this.emailCode = emailCode;
         this.result = result;
     }
