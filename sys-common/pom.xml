@@ -12,6 +12,13 @@
     <artifactId>sys-common</artifactId>
 
     <dependencies>
+        <!-- javax.mail 发送qq邮箱验证-->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
         <!-- Spring Boot Web 依赖 核心 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

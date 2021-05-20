@@ -6,9 +6,20 @@ import com.zzs.dao.UserDao;
 import com.zzs.entity.User;
 import com.zzs.service.UserService;
 import com.zzs.util.Constant;
+import com.zzs.util.SendEmailUtils;
+import com.zzs.vo.EmailCodeVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -24,18 +35,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserService {
 
     @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Autowired
     private UserDao userDao;
 
     /**
      * 注册账号
      *
-     * @param userName 用户名
-     * @param password 密码
-     * @param email    邮箱
+     * @param userName   用户名
+     * @param password   密码
+     * @param email      邮箱
+     * @param emailCode  邮箱验证码
+     * @param emailToken 邮箱token
      * @return
      */
     @Override
-    public String registeredAccount(String userName, String password, String email) {
+    public String registeredAccount(String userName, String password, String email, Integer emailCode, String emailToken) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_name", userName);
         User selectOne = userDao.selectOne(queryWrapper);
@@ -48,8 +64,12 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         if (password == null || password.length() <= 6) {
             return "密码长度不能小于6位";
         }
-        if (!email.matches("^[a-z0-9A-Z]+[- | a-z0-9A-Z . _]+@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-z]{2,}$")) {
+        if (!email.matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$")) {
             return "邮箱格式有误";
+        }
+        ;
+        if (emailCode == null || !emailToken.equals(redisTemplate.opsForValue().get(emailCode))) {
+            return "验证码有误";
         }
 
         User user = new User();
@@ -57,6 +77,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         user.setPassword(password);
         user.setEmail(email);
         userDao.insert(user);
+
+        redisTemplate.opsForHash().delete(emailCode);
         return Constant.SUCCESS;
     }
 
@@ -77,6 +99,42 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         }
         userDao.deleteById(userId);
         return Constant.SUCCESS;
+    }
+
+    /**
+     * 发送邮箱验证码
+     *
+     * @param email 邮箱
+     * @return
+     */
+    @Override
+    public EmailCodeVo sendEmailCode(String email) {
+        EmailCodeVo emailCodeVo = new EmailCodeVo();
+        if (!email.matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$")) {
+            emailCodeVo.setResult("邮箱格式有误");
+            return emailCodeVo;
+        }
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("email", email);
+        List<User> users = userDao.selectByMap(columnMap);
+        if (!CollectionUtils.isEmpty(users)) {
+            emailCodeVo.setResult("该邮箱已被注册，请更换一个");
+            return emailCodeVo;
+        }
+        Integer emailCode;
+        String token;
+        try {
+            emailCode = SendEmailUtils.sendQQEmail(email);
+            token = DigestUtils.md5DigestAsHex(String.valueOf(UUID.randomUUID()).getBytes());
+            redisTemplate.opsForValue().set(emailCode, token, 5, TimeUnit.MINUTES);
+            emailCodeVo.setResult(Constant.SUCCESS);
+            emailCodeVo.setEmailCode(emailCode);
+            return emailCodeVo;
+        } catch (Exception e) {
+            e.printStackTrace();
+            emailCodeVo.setResult("邮件发送失败，请检查邮箱后重试");
+            return emailCodeVo;
+        }
     }
 
 

@@ -5,6 +5,7 @@ import com.zzs.base.BaseController;
 import com.zzs.service.UserService;
 import com.zzs.util.CommonResult;
 import com.zzs.util.Constant;
+import com.zzs.vo.EmailCodeVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,19 +29,36 @@ public class UserController extends BaseController {
     /**
      * 注册
      *
-     * @param userName 用户名
-     * @param password 密码
-     * @param email    邮箱
+     * @param userName   用户名
+     * @param password   密码
+     * @param email      邮箱
+     * @param emailCode  邮箱验证码
+     * @param emailToken 邮箱token
      * @return
      * @throws Exception
      */
     @PostMapping(value = "/registeredAccount")
-    public CommonResult registeredAccount(String userName, String password, String email) {
-        String result = userService.registeredAccount(userName, password, email);
+    public CommonResult registeredAccount(String userName, String password, String email, Integer emailCode, String emailToken) {
+        String result = userService.registeredAccount(userName, password, email, emailCode, emailToken);
         if (result.equals(Constant.SUCCESS)) {
             return CommonResult.success("注册成功");
         }
         return CommonResult.error(result);
+    }
+
+    /**
+     * 发送邮箱验证码
+     *
+     * @param email 邮箱
+     * @return
+     */
+    @PostMapping(value = "/sendEmailCode")
+    public CommonResult sendEmailCode(String email) {
+        EmailCodeVo emailCodeVo = userService.sendEmailCode(email);
+        if (emailCodeVo.getResult().equals(Constant.SUCCESS)) {
+            return CommonResult.success(emailCodeVo.getEmailCode());
+        }
+        return CommonResult.error(emailCodeVo.getResult());
     }
 
     /**

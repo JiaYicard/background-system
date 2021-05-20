@@ -2,6 +2,7 @@ package com.zzs.service;
 
 import com.zzs.base.BaseService;
 import com.zzs.entity.User;
+import com.zzs.vo.EmailCodeVo;
 
 /**
  * <p>
@@ -16,12 +17,14 @@ public interface UserService extends BaseService<User> {
     /**
      * 注册账号
      *
-     * @param userName 用户名
-     * @param password 密码
-     * @param email    邮箱
+     * @param userName   用户名
+     * @param password   密码
+     * @param email      邮箱
+     * @param emailCode  邮箱验证码
+     * @param emailToken 邮箱token
      * @return
      */
-    String registeredAccount(String userName, String password, String email);
+    String registeredAccount(String userName, String password, String email, Integer emailCode, String emailToken);
 
     /**
      * 注销账号
@@ -30,4 +33,12 @@ public interface UserService extends BaseService<User> {
      * @return
      */
     String logoutAccount(Long userId);
+
+    /**
+     * 发送邮箱验证码
+     *
+     * @param email 邮箱
+     * @return
+     */
+    EmailCodeVo sendEmailCode(String email);
 }
