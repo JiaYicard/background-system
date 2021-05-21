@@ -24,7 +24,7 @@ public interface UserService extends BaseService<User> {
      * @param emailToken 邮箱token
      * @return
      */
-    String registeredAccount(String userName, String password, String email, Integer emailCode, String emailToken);
+    String registeredAccount(String userName, String password, String email, String emailCode, String emailToken);
 
     /**
      * 注销账号
@@ -41,4 +41,14 @@ public interface UserService extends BaseService<User> {
      * @return
      */
     EmailCodeVo sendEmailCode(String email);
+
+    /**
+     * 修改密码
+     *
+     * @param userId      用户id
+     * @param password    旧密码
+     * @param newPassword 新密码
+     * @return
+     */
+    String updatePassword(Long userId, String password, String newPassword);
 }
