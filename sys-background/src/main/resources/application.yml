@@ -9,12 +9,12 @@ spring:
     username: root
     password: root
 
-  #redis
-  redis:
-    host: 127.0.0.1
-    password: ''
-    port: 6379
-    timeout: 10000
+#redis
+redis:
+  host: 127.0.0.1
+  password: ''
+  port: 6379
+  timeout: 10000
 
 mybatis:
   database:
