@@ -8,15 +8,20 @@ import lombok.Data;
  */
 @Data
 public class EmailCodeVo {
-    private String emailCode;
 
     private String result;
+
+    private String token;
 
     public EmailCodeVo() {
     }
 
-    public EmailCodeVo(String emailCode, String result) {
-        this.emailCode = emailCode;
+    public EmailCodeVo(String result, String token) {
+        this.result = result;
+        this.token = token;
+    }
+
+    public EmailCodeVo(String result) {
         this.result = result;
     }
 }

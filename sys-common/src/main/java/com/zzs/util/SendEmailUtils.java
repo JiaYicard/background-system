@@ -18,7 +18,7 @@ public class SendEmailUtils {
         String from = "1418679522@qq.com";
         // 指定发送邮件的主机为 smtp.qq.com
         String host = "smtp.qq.com";  //QQ 邮件服务器
-        //获取系统属性
+        // 获取系统属性
         Properties properties = new Properties();
         properties.put("mail.smtp.port", "587");
         properties.put("mail.smtp.host", host);
@@ -44,7 +44,7 @@ public class SendEmailUtils {
         String emailCode = GeneralUtils.generalVerificationCode();
         // 设置消息体
         message.setText("尊敬的用户：\n 您的邮箱验证码为：" + emailCode + "\n 此验证码5分钟内有效");
-        //发送消息
+        // 发送消息
         Transport.send(message);
         return emailCode;
     }

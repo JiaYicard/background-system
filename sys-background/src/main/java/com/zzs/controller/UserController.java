@@ -38,7 +38,7 @@ public class UserController extends BaseController {
      * @throws Exception
      */
     @PostMapping(value = "/registeredAccount")
-    public CommonResult registeredAccount(String userName, String password, String email, Integer emailCode, String emailToken) {
+    public CommonResult registeredAccount(String userName, String password, String email, String emailCode, String emailToken) {
         String result = userService.registeredAccount(userName, password, email, emailCode, emailToken);
         if (result.equals(Constant.SUCCESS)) {
             return CommonResult.success("注册成功");
@@ -55,11 +55,29 @@ public class UserController extends BaseController {
     @PostMapping(value = "/sendEmailCode")
     public CommonResult sendEmailCode(String email) {
         EmailCodeVo emailCodeVo = userService.sendEmailCode(email);
-        if (emailCodeVo.getResult().equals(Constant.SUCCESS)) {
-            return CommonResult.success(emailCodeVo.getEmailCode());
+        if (emailCodeVo.getResult().equals("发送成功，请注意查收")) {
+            return CommonResult.success(emailCodeVo);
         }
         return CommonResult.error(emailCodeVo.getResult());
     }
+
+    /**
+     * 修改密码
+     *
+     * @param userId      用户id
+     * @param password    旧密码
+     * @param newPassword 新密码
+     * @return
+     */
+    @PostMapping(value = "/updatePassword")
+    public CommonResult updatePassword(Long userId, String password, String newPassword) {
+        String result = userService.updatePassword(userId, password, newPassword);
+        if (result.equals(Constant.SUCCESS)) {
+            return CommonResult.success("修改成功");
+        }
+        return CommonResult.error(result);
+    }
+
 
     /**
      * 注销账号

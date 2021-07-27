@@ -8,8 +8,9 @@ import com.zzs.service.UserService;
 import com.zzs.util.Constant;
 import com.zzs.util.SendEmailUtils;
 import com.zzs.vo.EmailCodeVo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -35,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserService {
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private UserDao userDao;
@@ -51,25 +52,30 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
      * @return
      */
     @Override
-    public String registeredAccount(String userName, String password, String email, Integer emailCode, String emailToken) {
+    public String registeredAccount(String userName, String password, String email, String emailCode, String emailToken) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_name", userName);
         User selectOne = userDao.selectOne(queryWrapper);
         if (selectOne != null) {
             return "用户名已被占用";
         }
-        if (userName == null) {
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("email", email);
+        List<User> users = userDao.selectByMap(columnMap);
+        if (!CollectionUtils.isEmpty(users)) {
+            return "该邮箱已被注册，请更换一个";
+        }
+        if (StringUtils.isBlank(userName)) {
             return "用户名不能为空";
         }
-        if (password == null || password.length() <= 6) {
+        if (StringUtils.isBlank(password) || password.length() <= 6) {
             return "密码长度不能小于6位";
         }
         if (!email.matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$")) {
             return "邮箱格式有误";
         }
-        ;
-        if (emailCode == null || !emailToken.equals(redisTemplate.opsForValue().get(emailCode))) {
-            return "验证码有误";
+        if (StringUtils.isBlank(emailCode) || !emailToken.equals(stringRedisTemplate.opsForValue().get(emailCode))) {
+            return "请输入正确的验证码";
         }
 
         User user = new User();
@@ -77,10 +83,10 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         user.setPassword(password);
         user.setEmail(email);
         userDao.insert(user);
-
-        redisTemplate.opsForHash().delete(emailCode);
+        stringRedisTemplate.delete(emailCode);
         return Constant.SUCCESS;
     }
+
 
     /**
      * 注销账号
@@ -90,12 +96,9 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
      */
     @Override
     public String logoutAccount(Long userId) {
-        if (userId == null) {
-            return "请输入正确的id";
-        }
         User user = userDao.selectById(userId);
         if (user == null) {
-            return "此id用户不存在";
+            return "此用户不存在";
         }
         userDao.deleteById(userId);
         return Constant.SUCCESS;
@@ -126,15 +129,43 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
         try {
             emailCode = SendEmailUtils.sendQQEmail(email);
             token = DigestUtils.md5DigestAsHex(String.valueOf(UUID.randomUUID()).getBytes());
-            redisTemplate.opsForValue().set(emailCode, token, 5, TimeUnit.MINUTES);
-            emailCodeVo.setResult(Constant.SUCCESS);
-            emailCodeVo.setEmailCode(emailCode);
+            stringRedisTemplate.opsForValue().set(emailCode, token, 5, TimeUnit.MINUTES);
+            emailCodeVo.setResult("发送成功，请注意查收");
+            emailCodeVo.setToken(token);
             return emailCodeVo;
         } catch (Exception e) {
             e.printStackTrace();
             emailCodeVo.setResult("邮件发送失败，请检查邮箱后重试");
             return emailCodeVo;
         }
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param userId      用户id
+     * @param password    旧密码
+     * @param newPassword 新密码
+     * @return
+     */
+    @Override
+    public String updatePassword(Long userId, String password, String newPassword) {
+        User user = userDao.selectById(userId);
+        if (user == null) {
+            return "此用户不存在";
+        }
+        if (!user.getPassword().equals(password)) {
+            return "旧密码有误";
+        }
+        if (user.getPassword().equals(newPassword)) {
+            return "与旧密码重复";
+        }
+        if (StringUtils.isBlank(newPassword) || newPassword.length() <= 6) {
+            return "密码长度不能小于6位";
+        }
+        user.setPassword(newPassword);
+        userDao.updateById(user);
+        return Constant.SUCCESS;
     }
 
 
